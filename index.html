@@ -74,7 +74,8 @@
       const sendMessage = async (content) => {
         try {
           const response = await fetch(
-            "https://play.reachableads.com:5000/receive_message",
+             "https://play.reachableads.com/receive_message",
+           // "http://192.168.68.51:5000/receive_message",
             {
               method: "POST",
               headers: {
