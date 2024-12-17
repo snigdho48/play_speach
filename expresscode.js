@@ -55,6 +55,7 @@ app.post("/receive_message", async (req, res) => {
     // Call TTS (Text-to-Speech) service
     const audioResponse = await axios.get(ttsUrl, {
       responseType: "arraybuffer",
+      httpsAgent: new (require("https").Agent)({ rejectUnauthorized: false }),
     });
 
     if (!audioResponse || !audioResponse.data) {

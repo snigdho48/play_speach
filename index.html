@@ -74,7 +74,7 @@
       const sendMessage = async (content) => {
         try {
           const response = await fetch(
-            "http://192.168.68.51:5000/receive_message",
+            "http://play.reachableads.com:5000/receive_message",
             {
               method: "POST",
               headers: {
@@ -94,7 +94,7 @@
           const audio = new Audio(data.audioData);
           audio.play();
           try {
-            await audioElement.play();
+            await audio.play();
           } catch (error) {
             console.error("Error playing audio:", error.message);
           }
