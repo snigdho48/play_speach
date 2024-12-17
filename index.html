@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="author" content="MD. ATIQUZZAMAN SNIGDHO" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        height: 250px;
+        width: 300px;
+        overflow: hidden;
+      }
+      .container {
+        height: 250px;
+        width: 300px;
+        overflow: hidden;
+        position: relative;
+      }
+      .btn {
+        position: absolute;
+        width: 70px;
+        height: 70px;
+        bottom: 25px;
+        left: 120px;
+        cursor: pointer;
+      }
+      span {
+        position: absolute;
+        width: 260px;
+        height: 160px;
+        top: 25px;
+        left: 20px;
+        text-align: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+    </style>
+    <!-- Include the new version of the franc-min library -->
+  </head>
+  <body>
+    <div class="container">
+      <span></span>
+      <img src="./start.png" alt="Start" id="startButton" class="btn" />
+    </div>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"
+      integrity="sha512-7eHRwcbYkK4d9g/6tD/mhkf++eoTHwpNM9woBxtPUBWm67zeAfFC+HrdoE2GanKeocly/VxeLvIqwvCdk7qScg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script>
+      const startButton = document.getElementById("startButton");
+      const textArea = document.querySelector("span");
+      const appendTextWordByWord = (text) => {
+        const words = text.split(" "); // Split the text into an array of words
+        let index = 0;
+
+        // Use setInterval to append one word at a time
+        const intervalId = setInterval(() => {
+          if (index < words.length) {
+            textArea.textContent += (index === 0 ? "" : " ") + words[index]; // Append the word with a space
+            index++;
+          } else {
+            clearInterval(intervalId); // Clear the interval when done
+          }
+        }, 300); // Adjust the delay (in milliseconds) between words
+      };
+      // Function to send message to OpenAI API
+      const sendMessage = async (content) => {
+        try {
+          const response = await fetch(
+            "http://192.168.68.51:5000/receive_message",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ content }),
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+          const text = data.completion;
+          console.log("Response:", data);
+          const audio = new Audio(data.audioData);
+          audio.play();
+          try {
+            await audioElement.play();
+          } catch (error) {
+            console.error("Error playing audio:", error.message);
+          }
+          textArea.textContent = "";
+          appendTextWordByWord(text); // Append the response text word by word
+        } catch (error) {
+          console.error("Error sending message:", error.message);
+        }
+      };
+
+      // Speech recognition setup
+      const recognition = new (window.SpeechRecognition ||
+        window.webkitSpeechRecognition ||
+        window.mozSpeechRecognition ||
+        window.msSpeechRecognition)();
+
+      recognition.onstart = () => {
+        startButton.style.opacity = "0.5";
+      };
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript.toLowerCase();
+        console.log("Transcript:", transcript);
+        textArea.textContent = transcript; // Update the text area with the recognized speech
+      };
+
+      recognition.onend = () => {
+        startButton.style.opacity = "1";
+        sendMessage(textArea.textContent); // Send recognized text to OpenAI API
+      };
+
+      // Start speech recognition on button click
+      startButton.addEventListener("click", () => {
+        recognition.start();
+      });
+    </script>
+  </body>
+</html>
