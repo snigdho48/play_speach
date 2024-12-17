@@ -11,15 +11,19 @@ const apiKey = process.env.OPENAI_API_KEY;
 
 const openai = new OpenAI({ organization: organization, apiKey: apiKey });
 const app = express();
-app.use(cors());
-app.use(bodyParser.json());
 
 const PORT = process.env.PORT || 5000;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cors());
+const corsOptions = {
+  origin: "*", // Allow all origins
+  methods: ["POST", "GET", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
 
+app.use(cors(corsOptions));
+app.options("*", cors());
 // Endpoint to receive user input and get response from OpenAI
 app.post("/receive_message", async (req, res) => {
   try {
