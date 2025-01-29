@@ -2,10 +2,8 @@ import express from "express";
 import bodyParser from "body-parser";
 import OpenAI from "openai";
 import cors from "cors";
-import axios from "axios";
 import ip from "ip";
 import dotenv from "dotenv";
-import { franc } from "franc-min";
 dotenv.config();
 const organization = process.env.OPENAI_ORGANIZATION_ID;
 const apiKey = process.env.OPENAI_API_KEY;
@@ -28,9 +26,7 @@ app.post("/receive_message", async (req, res) => {
       messages: [
         {
           role: "system",
-          content:
-            userInput +
-            " output will be the same language. If language is Bangla, then output will be Bangla language; otherwise, it will be in English language.",
+          content: userInput,
         },
       ],
       model: "gpt-3.5-turbo",
@@ -38,37 +34,9 @@ app.post("/receive_message", async (req, res) => {
 
     const responseText = chatCompletion.choices[0].message.content;
 
-    // Detect language using franc-min
-    const detectedLangCode = franc(responseText);
-    let detectedLang = "en"; // Default to English
-
-    if (detectedLangCode === "ben") {
-      detectedLang = "bn"; // Bengali
-    } else {
-      detectedLang = "en"; // English
-    }
-
-    console.log("Detected Language Code:", detectedLangCode);
-    const encodedText = encodeURIComponent(responseText);
-    const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${detectedLang}&client=tw-ob&q=${encodedText}`;
-
-    // Call TTS (Text-to-Speech) service
-    const audioResponse = await axios.get(ttsUrl, {
-      responseType: "arraybuffer",
-    });
-
-    if (!audioResponse || !audioResponse.data) {
-      throw new Error("Failed to fetch TTS audio.");
-    }
-
-    // Convert audio to base64
-    const audioBase64 = Buffer.from(audioResponse.data).toString("base64");
-
     res.json({
       message: "Message received successfully",
       completion: responseText,
-      lang: detectedLang,
-      audioData: `data:audio/mpeg;base64,${audioBase64}`, // Send audio as base64
     });
   } catch (error) {
     console.error("Error processing request:", error.message);
